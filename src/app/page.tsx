@@ -1,5 +1,5 @@
 import Booking from '@/components/Booking/Booking';
-import Image from 'next/image';
+import ManpBoxMap from '@/components/Map/ManpBoxMap';
 
 export default function Home() {
   return (
@@ -11,7 +11,9 @@ export default function Home() {
         <div>
           <Booking />
         </div>
-        <div className="col-span-2 ">Map</div>
+        <div className="col-span-2 ">
+          <ManpBoxMap />
+        </div>
       </div>
     </div>
   );
