@@ -1,13 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { GET } from '@/app/api/search-address/route';
 import { Response } from './auto-complete-response';
+import { Suggestion } from './auto-complete-response';
+import { FeatureCollection } from './location-response';
 
+import { useLocation } from '../../../context/LocationProvider';
+
+const session_token = 'f06e7531-6373-4d5a-8614-b6f313488050';
+
+const BASE_URL = 'https://api.mapbox.com/search/searchbox/v1/retrieve/';
+const ACCES_TOKEN =
+  'pk.eyJ1IjoiY29kZXdpdGhwYXNzaW9uMDAwIiwiYSI6ImNsdHNwMzE3aTB3cTYycXFtM3l1cnVsYzUifQ.q362IhUsHmCfLirKDp8z_A';
+interface Position {
+  lat: number;
+  lng: number;
+}
 function AutocompleteAddress() {
+  const {
+    sourceLocation,
+    destinationLocation,
+    setSourceLocation,
+    setDestinationLocation,
+  } = useLocation();
+
   const [source, setSource] = useState<string>('');
   const [destination, setDestination] = useState<string>('');
   const [addressList, setAddressList] = useState<Response | null>(null);
   const [isSourceAdressList, setIsSourceAdressList] = useState<boolean>(true);
-
   const [isCallApi, setIsCallApi] = useState<boolean>(false);
 
   useEffect(() => {
@@ -30,6 +49,38 @@ function AutocompleteAddress() {
     } catch (error) {
       console.error('Error fetching addresses:', error);
     }
+  };
+
+  const onSourceAdressClick = async (item: Suggestion) => {
+    setIsCallApi(false);
+    setSource(item.place_formatted);
+    setAddressList(null);
+    const res = await fetch(
+      `${BASE_URL}${item.mapbox_id}?session_token=${session_token}&access_token=${ACCES_TOKEN}`
+    );
+
+    const result: any = await res.json();
+    console.log(result);
+    setSourceLocation({
+      lng: result?.features[0]?.geometry?.coordinates[0],
+      lat: result?.features[0]?.geometry?.coordinates[1],
+    });
+  };
+
+  const onDestinationAdressClick = async (item: Suggestion) => {
+    setIsCallApi(false);
+    setDestination(item.place_formatted);
+    setAddressList(null);
+    const res = await fetch(
+      `${BASE_URL}${item.mapbox_id}?session_token=${session_token}&access_token=${ACCES_TOKEN}`
+    );
+
+    const result: any = await res.json();
+    console.log(result);
+    setDestinationLocation({
+      lng: result?.features[0]?.geometry?.coordinates[0],
+      lat: result?.features[0]?.geometry?.coordinates[1],
+    });
   };
 
   return (
@@ -56,9 +107,7 @@ function AutocompleteAddress() {
                 className="p-3 hover:bg-gray-100 cursor-pointer"
                 key={index}
                 onClick={() => {
-                  setIsCallApi(false);
-                  setSource(item.place_formatted);
-                  setAddressList(null);
+                  onSourceAdressClick(item);
                 }}
               >
                 {item.place_formatted}
@@ -88,9 +137,7 @@ function AutocompleteAddress() {
                 className="p-3 hover:bg-gray-100 cursor-pointer"
                 key={index}
                 onClick={() => {
-                  setIsCallApi(false);
-                  setDestination(item.place_formatted);
-                  setAddressList(null);
+                  onDestinationAdressClick(item);
                 }}
               >
                 {item.place_formatted}
